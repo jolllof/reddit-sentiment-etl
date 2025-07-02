@@ -2,6 +2,7 @@
 from etl.extract import RedditExtractor
 from config.config import load_reddit_config
 from etl.transform import RedditTransformer
+from utilities import save_posts_to_csv
 import os
 # from load import RedditLoader  # Your future load class
 import structlog
@@ -15,9 +16,11 @@ def main():
     logger = structlog.get_logger()
     logger = logger.bind(module="main")
     subbredit_source = "popular"
+    subreddit_limit=10
+    posts_per_subreddit=20
+
     logger.info(f"*** {subbredit_source.upper()} Reddit Sentinment ETL pipeline ***")
     print('\n')
-
 
     try:
         # Extract Phase
@@ -34,8 +37,8 @@ def main():
             # Extract data from popular subreddits
         raw_data = extractor.extract_reddit_data(
             subreddit_source=subbredit_source,
-            subreddit_limit=2,
-            posts_per_subreddit=20,
+            subreddit_limit=subreddit_limit,
+            posts_per_subreddit=posts_per_subreddit,
             save_to_csv=False  # Save raw data for backup
         )
         logger.info(f"Extraction completed. Extracted {len(raw_data)} posts")
@@ -46,14 +49,14 @@ def main():
         transformer = RedditTransformer()
         processed_data = transformer.transform_data(
             raw_data, 
-            save_to_csv=True
+            save_to_csv=False
         )
         
-
-
-
-
-
+        print('\n')
+        logger.info("SENTIMENT ANALYSIS PHASE")
+        sentiment_data=transformer.apply_sentiment(processed_data)
+        save_posts_to_csv(sentiment_data, current_datetime=transformer.current_datetime, filename="sentiment_analysis")
+        logger.info("Sentiment analysis completed and saved to CSV")
 
         # Load Phase (placeholder for your future implementation)
         logger.info("LOADING PHASE")
