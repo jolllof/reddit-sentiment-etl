@@ -1,27 +1,25 @@
 import requests
 import structlog
 logger = structlog.get_logger()
+logger = logger.bind(module="utilities")
 
 
-def get_data(url, auth):
-    response = requests.get(url, auth=auth)
-    logger.info(response)
-
-    if response.status_code != 200:
-        print(f"Error Fetching {url} \n {response}")
-        print(response.text)
-        return []
+def save_posts_to_csv(df, current_datetime, filename=None):
+    """
+    Save posts DataFrame to CSV file.
+    
+    Args:
+        df(pandas.DataFrame): DataFrame containing post data
+        filename (str): Optional custom filename
+        
+    Returns:
+        str: Path to saved file
+    """
+    if filename is None:
+        filename = f"data/hot_posts_{current_datetime.strftime('%Y%m%d_%H%M%S')}.csv"
     else:
-        return response
-        logger.info(f"Utilities: Successfully fetched data from {url}")
-
-
-def post_data(url, auth, params):
-    response = requests.post(url, auth=auth, params=params)
-
-    if response.status_code != 200:
-        print(f"Error Fetching {url} \n {response}")
-        return []
-    else:
-        return response.text
-        logger.info(f"Utilities: Successfully fetched data from {url}")
+        filename = f"data/{filename}_hot_posts_{current_datetime.strftime('%Y%m%d_%H%M%S')}.csv"
+    
+    df.to_csv(filename, index=False)
+    logger.info(f"Saved {len(df)} posts to {filename}")
+    return filename
