@@ -5,24 +5,19 @@ import praw
 import pandas as pd
 from utilities import *
 
-
 import structlog
 logger = structlog.get_logger()
+logger=logger.bind(module="extract")
 os.system('clear')
 current_datetime = datetime.now()
 
-client_id="SLxpSSHPC6W8_G7E_jnwHQ",
-client_secret="YkCYpwFnMJINtKH3w3ltytFkuRwKnQ",
-user_agent="sentiment_analysis",
-username="jolllof  ",
-password="Jarvis2.0"
 
 reddit = praw.Reddit(
-    client_id=client_id,
-    client_secret=client_secret,
-    user_agent=user_agent,
-    username=username,
-    password=password
+    client_id="SLxpSSHPC6W8_G7E_jnwHQ",
+    client_secret="YkCYpwFnMJINtKH3w3ltytFkuRwKnQ",
+    user_agent="sentiment_analysis",
+    username="jolllof  ",
+    password="Jarvis2.0"
 )
 
 
@@ -61,7 +56,7 @@ def get_hot_posts_from_subreddits(subreddits, reddit, limit=20):
     """
     posts=[]
     for sub in subreddits:
-        logger.info(f"Fetching hot posts from subreddit: {sub}")
+        logger.info(f"Fetching hot posts from: {sub}")
 
         subreddit = reddit.subreddit(sub)
         for post in subreddit.hot(limit=10):
@@ -81,7 +76,7 @@ def get_hot_posts_from_subreddits(subreddits, reddit, limit=20):
 
 def main(args):
     logger.info("Getting popular subreddits from Reddit")
-    popular_subreddits = get_popular_subreddits(reddit, 10)
+    popular_subreddits = get_popular_subreddits(reddit, 100)
 
     #user_subreddits = get_user_subreddits(reddit)
     nsfw = []
@@ -97,14 +92,6 @@ def main(args):
     logger.info("Getting top posts from clean subreddits") 
     get_hot_posts_from_subreddits(clean, reddit)
 
-
-    
-    
-    # subreddit = reddit.subreddit("python")
-    # for post in subreddit.hot(limit=10):
-    #     print(f"{post.title} (Score: {post.score})")
-
-    
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
