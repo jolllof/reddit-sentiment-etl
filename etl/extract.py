@@ -54,7 +54,8 @@ class RedditExtractor:
         subreddits = []
         try:
             for subreddit in self.reddit.subreddits.popular(limit=limit):
-                subreddits.append(subreddit)
+                if not subreddit.over_18:
+                    subreddits.append(subreddit)
             self.logger.info(f"Successfully fetched {len(subreddits)} popular subreddits")
         except Exception as e:
             self.logger.error(f"Error fetching popular subreddits: {e}")
@@ -104,15 +105,16 @@ class RedditExtractor:
                 subreddit = self.reddit.subreddit(sub)
                 
                 for post in subreddit.hot(limit=limit):
-                    posts.append({
-                        "subreddit": sub,
-                        "title": post.title,
-                        "score": post.score,
-                        "url": post.url,
-                        "author": post.author.name if post.author else "deleted",
-                        "created_utc": datetime.utcfromtimestamp(post.created_utc),
-                        "extracted_at": self.current_datetime
-                    })
+                    if not post.over_18:
+                        posts.append({
+                            "subreddit": sub,
+                            "title": post.title,
+                            "score": post.score,
+                            "author": post.author.name if post.author else "deleted",
+                            "created_utc": datetime.utcfromtimestamp(post.created_utc),
+                            "extracted_at": self.current_datetime,
+                            "nsfw": post.over_18
+                        })
             except Exception as e:
                 self.logger.error(f"Error fetching posts from {sub}: {e}")
                 continue
