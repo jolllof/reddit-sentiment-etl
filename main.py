@@ -29,7 +29,7 @@ def main():
         # Extract data from popular subreddits
         raw_data = extractor.extract_reddit_data(
             subreddit_source="popular",
-            subreddit_limit=5,
+            subreddit_limit=100,
             posts_per_subreddit=20,
             save_to_csv=True  # Save raw data for backup
         )

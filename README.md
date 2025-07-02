@@ -12,7 +12,7 @@ This project demonstrates an **automated ETL pipeline** that:
 - Performs **text preprocessing and sentiment analysis**
 - Stores the enriched data in a structured format
 
-The pipeline is fully orchestrated using **Apache Airflow** and can scale using **PySpark** for larger datasets.
+The pipeline will be orchestrated using **Apache Airflow** and should scale using **PySpark** for larger datasets.
 
 ---
 
