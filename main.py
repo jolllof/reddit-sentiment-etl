@@ -36,7 +36,7 @@ def main():
             subreddit_source=subbredit_source,
             subreddit_limit=2,
             posts_per_subreddit=20,
-            save_to_csv=True  # Save raw data for backup
+            save_to_csv=False  # Save raw data for backup
         )
         logger.info(f"Extraction completed. Extracted {len(raw_data)} posts")
         print('\n')

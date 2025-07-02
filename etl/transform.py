@@ -1,9 +1,17 @@
 import structlog
 import pandas as pd
-import os
-import argparse
 from utilities import save_posts_to_csv
 from datetime import datetime
+import nltk
+import ssl
+
+# ssl._create_default_https_context = ssl._create_unverified_context
+# nltk.download('punkt', quiet=True, download_dir='/Users/michaelhammond/Documents/GitHub/tweetsent_env/nltk_data')
+# nltk.download('punkt_tab', download_dir='/Users/michaelhammond/Documents/GitHub/tweetsent_env/nltk_data')
+# nltk.download('wordnet', download_dir='/Users/michaelhammond/Documents/GitHub/tweetsent_env/nltk_data')
+# nltk.download('omw-1.4', download_dir='/Users/michaelhammond/Documents/GitHub/tweetsent_env/nltk_data')
+
+from nltk.tokenize import word_tokenize
 
 class RedditTransformer:
     """
@@ -27,7 +35,19 @@ class RedditTransformer:
         # Perform necessary transformations
         df['created_utc'] = pd.to_datetime(df['created_utc'], unit='s')
         df.drop(columns=['url'], inplace=True, errors='ignore')
-        
+
+        # Clean text data
+        df['title'] = df['title'].str.replace(r'http\S+|www\S+|https\S+', '', regex=True)  # Remove URLs
+        df['title'] = df['title'].str.replace(r'[^\w\s]', '', regex=True)  # Remove special characters
+        df['title'] = df['title'].str.lower()  # Convert to lowercase
+        df['title'] = df['title'].str.strip()  # Remove leading/trailing whitespace
+        # df['title'] = df['title'].apply(lambda x: ' '.join(word_tokenize(x)))  # Tokenization
+        df['title'] = df['title'].str.replace(r'\s+', ' ', regex=True)  # Normalize whitespace
+        df['title'] = df['title'].str.replace(r'\b\w{1,2}\b', '', regex=True)  # Remove short words
+
+
+        df['tokens'] = df['title'].apply(lambda x: word_tokenize(x))  # Tokenization
+
         # Log the shape of the DataFrame after transformation
         self.logger.info(f"Transformed data shape: {df.shape}")
 
@@ -35,7 +55,7 @@ class RedditTransformer:
         if save_to_csv:
             filename=save_posts_to_csv(df, current_datetime=self.current_datetime, filename="transformed")
         
-        
+
         return df
     
 
