@@ -46,18 +46,6 @@ The pipeline is fully orchestrated using **Apache Airflow** and can scale using 
 
 ---
 
-## 📁 Folder Structure (Optional)
-reddit-sentiment-etl/
-├── dags/ # Airflow DAGs
-├── scripts/ # ETL components (extract, transform, load)
-├── data/ # Local data storage (if used)
-├── config/ # API keys and environment configs
-├── notebooks/ # Exploratory analysis (optional)
-├── README.md # Project overview
-
-
----
-
 ## 📌 Notes
 
 - Reddit’s "hot" posts reflect trending content, which may introduce engagement or popularity bias.
