@@ -8,7 +8,6 @@ from utilities import *
 import structlog
 logger = structlog.get_logger()
 logger=logger.bind(module="extract")
-os.system('clear')
 current_datetime = datetime.now()
 
 
@@ -72,43 +71,4 @@ def get_hot_posts_from_subreddits(subreddits, reddit, limit=20):
             )
 
     posts_df = pd.DataFrame(posts)
-    posts_df.to_csv(f"hot_posts{current_datetime}.csv", index=False)
-
-def main(args):
-    logger.info("Getting popular subreddits from Reddit")
-    popular_subreddits = get_popular_subreddits(reddit, 100)
-
-    #user_subreddits = get_user_subreddits(reddit)
-    nsfw = []
-    clean = []
-    logger.info("Removing NSFW subreddits")
-    for subreddit in popular_subreddits:
-        if subreddit.over18: 
-            nsfw.append(subreddit.display_name)
-        else:
-            clean.append(subreddit.display_name)
-
-    logger.info(f"Found {len(popular_subreddits)} popular subreddits, {len(nsfw)} NSFW and {len(clean)} clean subreddits")
-    logger.info("Getting top posts from clean subreddits") 
-    get_hot_posts_from_subreddits(clean, reddit)
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--set",
-        metavar="KEY=VALUE",
-        nargs="+",
-        help="""
-			Arguments need to be passed in the form of --set key1=val1 key2=val2 etc...
-			Example Arguments:
-			Python3 -m prime --set args_group="robinhood"
-		""",
-    )
-    args = parser.parse_args()
-    if args.set:
-        args = {v.split("=", 1)[0]: v.split("=", 1)[1] for v in list(args.set)}
-
-    main(args)
-
-
+    posts_df.to_csv(f"data/hot_posts_{current_datetime}.csv", index=False)
