@@ -15,9 +15,11 @@ def main():
     logger = structlog.get_logger()
     logger = logger.bind(module="main")
     subbredit_source = "popular"
+    subreddit_limit=100
+    posts_per_subreddit=20
+
     logger.info(f"*** {subbredit_source.upper()} Reddit Sentinment ETL pipeline ***")
     print('\n')
-
 
     try:
         # Extract Phase
@@ -34,8 +36,8 @@ def main():
             # Extract data from popular subreddits
         raw_data = extractor.extract_reddit_data(
             subreddit_source=subbredit_source,
-            subreddit_limit=2,
-            posts_per_subreddit=20,
+            subreddit_limit=subreddit_limit,
+            posts_per_subreddit=posts_per_subreddit,
             save_to_csv=False  # Save raw data for backup
         )
         logger.info(f"Extraction completed. Extracted {len(raw_data)} posts")

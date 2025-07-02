@@ -1,6 +1,6 @@
 # reddit-sentiment-etl
 
-An automated ETL pipeline that extracts hot posts from Reddit, cleans text, performs sentiment analysis, and stores enriched data.
+An automated ETL pipeline that extracts hot posts from Reddit, cleans text, performs natural language processing, sentiment analysis, and stores enriched data.
 
 ---
 
@@ -22,7 +22,7 @@ The pipeline will be orchestrated using **Apache Airflow** and should scale usin
   Collects hot posts from specified subreddits using the Reddit API via **PRAW**.
 
 - **🧹 Data Transformation**  
-  Cleans post content (removes URLs, emojis, markdown formatting, etc.) and filters for language and relevance.
+  Cleans post content (removes URLs, emojis, markdown formatting, etc.) and filters for language and relevance. **NLTK** for tokenization and stopwords, ***TextBlob** to fix typos
 
 - **🧠 Sentiment Enrichment**  
   Classifies each post as *Positive*, *Negative*, or *Neutral* using **VADER Sentiment Analysis**, with optional support for transformer models like **BERT**.
