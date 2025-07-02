@@ -1,5 +1,6 @@
 import os
 from dataclasses import dataclass
+import yaml
 
 @dataclass
 class RedditConfig:
@@ -22,3 +23,14 @@ def load_reddit_config() -> RedditConfig:
         username=os.getenv('REDDIT_USERNAME'),
         password=os.getenv('REDDIT_PASSWORD')
     )
+
+def load_yaml_config(values: str) -> dict:
+    """
+    Load configuration from a YAML file.
+    This function can be expanded to read from a specific YAML file if needed.
+    """
+    config_path = "config/config.yaml"
+    with open(config_path, 'r') as file:
+        config = yaml.safe_load(file)
+        return config.get(values, {})
+    
