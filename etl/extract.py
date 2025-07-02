@@ -11,13 +11,18 @@ logger = structlog.get_logger()
 os.system('clear')
 current_datetime = datetime.now()
 
+client_id="SLxpSSHPC6W8_G7E_jnwHQ",
+client_secret="YkCYpwFnMJINtKH3w3ltytFkuRwKnQ",
+user_agent="sentiment_analysis",
+username="jolllof  ",
+password="Jarvis2.0"
 
 reddit = praw.Reddit(
-    client_id="SLxpSSHPC6W8_G7E_jnwHQ",
-    client_secret="YkCYpwFnMJINtKH3w3ltytFkuRwKnQ",
-    user_agent="sentiment_analysis",
-    username="jolllof  ",
-    password="Jarvis2.0"
+    client_id=client_id,
+    client_secret=client_secret,
+    user_agent=user_agent,
+    username=username,
+    password=password
 )
 
 
