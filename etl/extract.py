@@ -2,12 +2,14 @@ import argparse
 import os
 from datetime import datetime, timedelta
 import praw
-
+import pandas as pd
 from utilities import *
-os.system('clear')
+
 
 import structlog
 logger = structlog.get_logger()
+os.system('clear')
+current_datetime = datetime.now()
 
 
 reddit = praw.Reddit(
@@ -52,16 +54,29 @@ def get_hot_posts_from_subreddits(subreddits, reddit, limit=20):
     :param limit: The number of posts to fetch from each subreddit.
     :return: A dictionary with subreddit names as keys and lists of post titles and scores as values.
     """
+    posts=[]
     for sub in subreddits:
         logger.info(f"Fetching hot posts from subreddit: {sub}")
 
         subreddit = reddit.subreddit(sub)
         for post in subreddit.hot(limit=10):
-            print(f"{post.title} (Score: {post.score})")
+            posts.append(
+                {
+                    "subreddit": sub,
+                    "title": post.title,
+                    "score": post.score,
+                    "url": post.url,
+                    "author": post.author.name if post.author else "deleted",
+                    "created_utc": datetime.utcfromtimestamp(post.created_utc),
+                }
+            )
+
+    posts_df = pd.DataFrame(posts)
+    posts_df.to_csv(f"hot_posts{current_datetime}.csv", index=False)
 
 def main(args):
     logger.info("Getting popular subreddits from Reddit")
-    popular_subreddits = get_popular_subreddits(reddit)
+    popular_subreddits = get_popular_subreddits(reddit, 10)
 
     #user_subreddits = get_user_subreddits(reddit)
     nsfw = []

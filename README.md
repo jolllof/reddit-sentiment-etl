@@ -1,21 +1,78 @@
-# tweet-sentiment-etl
-an automated ETL pipeline that extracts trending topics, gathers related tweets, performs text cleaning and sentiment analysis.
-# Trending Tweets Sentiment ETL Pipeline
+# reddit-sentiment-etl
 
-## Overview
-
-This project demonstrates an **automated ETL pipeline** that extracts trending topics from Twitter (X), gathers related tweets, performs **text cleaning and sentiment analysis**, and stores the enriched data in a structured format. The pipeline is fully orchestrated using **Apache Airflow** and can scale with **PySpark** for large datasets.
+An automated ETL pipeline that extracts hot posts from Reddit, cleans text, performs sentiment analysis, and stores enriched data.
 
 ---
 
-## Key Features
+## 🧠 Overview
 
--  **Data Extraction:** Collects real-time trending topics and sample tweets using the Twitter API.
--  **Data Transformation:** Cleans tweet text (removes URLs, emojis, mentions, etc.) and filters for relevance and language.
--  **Sentiment Enrichment:** Classifies each tweet as *Positive*, *Negative*, or *Neutral* using **VADER Sentiment Analysis** (or optional BERT model).
--  **Data Loading:** Stores processed data into **AWS S3** (or local storage), optionally loads into a **PostgreSQL/BigQuery** warehouse.
--  **Orchestration:** Managed by **Apache Airflow DAG**, with configurable schedules (e.g., every 6 hours).
+This project demonstrates an **automated ETL pipeline** that:
+
+- Extracts **hot posts** from selected Reddit subreddits
+- Performs **text preprocessing and sentiment analysis**
+- Stores the enriched data in a structured format
+
+The pipeline is fully orchestrated using **Apache Airflow** and can scale using **PySpark** for larger datasets.
 
 ---
 
+## 🚀 Key Features
 
+- **🔍 Data Extraction**  
+  Collects hot posts from specified subreddits using the Reddit API via **PRAW**.
+
+- **🧹 Data Transformation**  
+  Cleans post content (removes URLs, emojis, markdown formatting, etc.) and filters for language and relevance.
+
+- **🧠 Sentiment Enrichment**  
+  Classifies each post as *Positive*, *Negative*, or *Neutral* using **VADER Sentiment Analysis**, with optional support for transformer models like **BERT**.
+
+- **📦 Data Loading**  
+  Saves processed data to **AWS S3** or local storage. Optionally supports loading into **PostgreSQL** or **BigQuery** for querying.
+
+- **⏱ Orchestration**  
+  Workflow is scheduled and managed using **Apache Airflow DAGs**, with customizable run intervals (e.g., hourly or daily).
+
+---
+
+## 🛠 Technologies Used
+
+- Python 3
+- PRAW (Python Reddit API Wrapper)
+- VADER (NLTK Sentiment Analyzer)
+- Apache Airflow
+- PySpark (optional for scale)
+- AWS S3 / PostgreSQL / BigQuery (optional for storage)
+
+---
+
+## 📁 Folder Structure (Optional)
+reddit-sentiment-etl/
+├── dags/ # Airflow DAGs
+├── scripts/ # ETL components (extract, transform, load)
+├── data/ # Local data storage (if used)
+├── config/ # API keys and environment configs
+├── notebooks/ # Exploratory analysis (optional)
+├── README.md # Project overview
+
+
+---
+
+## 📌 Notes
+
+- Reddit’s "hot" posts reflect trending content, which may introduce engagement or popularity bias.
+- VADER is tuned for social media, but transformer models may improve accuracy for more nuanced sentiment.
+
+---
+
+## ✅ Next Steps
+
+- Add topic modeling or keyword extraction
+- Incorporate comment sentiment for deeper insights
+- Deploy with Docker and set up on a cloud scheduler (e.g., AWS MWAA or Cloud Composer)
+
+---
+
+## 📬 Contact
+
+Feel free to reach out or open an issue for questions or collaboration ideas!
