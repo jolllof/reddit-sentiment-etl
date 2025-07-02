@@ -4,7 +4,7 @@ import os
 from datetime import datetime, timedelta
 import praw
 import pandas as pd
-from utilities import *
+from utilities import save_posts_to_csv
 
 import structlog
 
@@ -121,24 +121,6 @@ class RedditExtractor:
         self.logger.info(f"Successfully extracted {len(posts_df)} posts")
         return posts_df
     
-    def save_posts_to_csv(self, posts_df, filename=None):
-        """
-        Save posts DataFrame to CSV file.
-        
-        Args:
-            posts_df (pandas.DataFrame): DataFrame containing post data
-            filename (str): Optional custom filename
-            
-        Returns:
-            str: Path to saved file
-        """
-        if filename is None:
-            filename = f"data/hot_posts_{self.current_datetime.strftime('%Y%m%d_%H%M%S')}.csv"
-        
-        posts_df.to_csv(filename, index=False)
-        self.logger.info(f"Saved {len(posts_df)} posts to {filename}")
-        return filename
-    
     def extract_reddit_data(self, subreddit_source="popular", subreddit_limit=10, posts_per_subreddit=10, save_to_csv=True):
         """
         Main extraction method that orchestrates the entire extraction process.
@@ -168,7 +150,7 @@ class RedditExtractor:
         
         # Save to CSV if requested
         if save_to_csv:
-            self.save_posts_to_csv(posts_df)
+            filename=save_posts_to_csv(posts_df, current_datetime=self.current_datetime, filename="extracted")
         
         self.logger.info("Reddit data extraction completed successfully")
         return posts_df

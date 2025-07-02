@@ -1,0 +1,94 @@
+import structlog
+import pandas as pd
+import os
+import argparse
+from utilities import save_posts_to_csv
+from datetime import datetime
+
+class RedditTransformer:
+    """
+    Class to transform raw Reddit data into a structured format.
+    """
+
+    def __init__(self):
+        self.logger = structlog.get_logger()
+        self.logger = self.logger.bind(module="transform")
+        self.current_datetime = datetime.now()
+
+    def transform_data(self, df, save_to_csv=True):
+        """
+        Transforms raw Reddit data into a structured DataFrame.
+        
+        :param raw_data: List of dictionaries containing raw Reddit post data.
+        :return: Pandas DataFrame with transformed data.
+        """
+        self.logger.info("Starting data transformation")
+
+        # Perform necessary transformations
+        df['created_utc'] = pd.to_datetime(df['created_utc'], unit='s')
+        df.drop(columns=['url'], inplace=True, errors='ignore')
+        
+        # Log the shape of the DataFrame after transformation
+        self.logger.info(f"Transformed data shape: {df.shape}")
+
+         # Save to CSV if requested
+        if save_to_csv:
+            filename=save_posts_to_csv(df, current_datetime=self.current_datetime, filename="transformed")
+        
+        
+        return df
+    
+
+
+
+
+
+
+
+
+#     For the transform and load portions of your Reddit ETL sentiment analysis pipeline, here are the key next steps:
+# Transform Phase
+# Data Cleaning & Preprocessing:
+
+# Remove deleted/removed posts and comments
+# Handle missing values and duplicates
+# Clean text data (remove URLs, special characters, normalize whitespace)
+# Filter out bot accounts and spam content
+# Standardize datetime formats
+
+# Text Preprocessing for Sentiment Analysis:
+
+# Tokenization and lowercasing
+# Remove stop words (but be careful - some like "not" are crucial for sentiment)
+# Handle negations properly
+# Consider lemmatization/stemming
+# Deal with Reddit-specific elements (subreddit mentions, user tags, markdown)
+
+# Sentiment Analysis Implementation:
+
+# Choose your approach: rule-based (VADER), pre-trained models (TextBlob, spaCy), or transformer models (BERT, RoBERTa)
+# Consider Reddit-specific sentiment models if available
+# Generate sentiment scores (positive, negative, neutral, compound)
+# Add confidence scores if your model supports them
+
+# Feature Engineering:
+
+# Extract metadata features (post length, comment count, upvote ratio)
+# Time-based features (hour of day, day of week, seasonality)
+# Subreddit categorization
+# User engagement metrics
+
+# Load Phase
+# Database Design:
+
+# Decide on storage: relational DB (PostgreSQL), NoSQL (MongoDB), or data warehouse (BigQuery, Snowflake)
+# Design schema with proper indexing for your analysis queries
+# Consider partitioning by date or subreddit for performance
+
+# Data Pipeline Architecture:
+
+# Batch processing (Apache Airflow, Prefect) vs streaming (Apache Kafka, AWS Kinesis)
+# Error handling and data validation
+# Monitoring and alerting for pipeline failures
+
+# What's your current data volume and how frequently do you plan to update the analysis? This will help determine the best architecture approach.
