@@ -109,7 +109,6 @@ class RedditTransformer:
         else:
             return wordnet.NOUN
         
-
     def lemmatization(self, df):
         """
         Lemmatizes the tokens in the DataFrame.
@@ -131,7 +130,6 @@ class RedditTransformer:
         df['lemmatized_tokens'] = df['tokens'].apply(lemmatize_row)
         df.drop(columns=['tokens'], inplace=True)
         return df
-
 
     def transform_data(self, df, save_to_csv=True):
         """
@@ -156,7 +154,20 @@ class RedditTransformer:
         return df
 
     def apply_sentiment(self, df):
+        """
+        Applies sentiment analysis to the cleaned titles in the DataFrame.
+        :param df: Pandas DataFrame containing cleaned titles.
+        :return: DataFrame with sentiment labels and confidence scores.
+        """
+        label_map = {
+            "LABEL_0": "Negative",
+            "LABEL_1": "Neutral",
+            "LABEL_2": "Positive"
+        }
+        
         sentiments = df['cleaned_title'].apply(analyze_sentiment)
-        df['sentiment'] = sentiments.apply(lambda x: x[0])
+        
+        df['sentiment'] = sentiments.apply(lambda x: label_map.get(x[0], x[0]))  # Map label or fallback to original
         df['confidence'] = sentiments.apply(lambda x: x[1])
+        
         return df
