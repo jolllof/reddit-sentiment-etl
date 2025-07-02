@@ -5,9 +5,14 @@ from config.config import load_yaml_config
 from datetime import datetime
 import nltk
 from nltk.tokenize import word_tokenize
-from nltk.corpus import stopwords
+from nltk.corpus import stopwords, wordnet
 from textblob import TextBlob
 from nltk.stem import WordNetLemmatizer
+from nltk import pos_tag
+from models.sentiment import analyze_sentiment
+
+pd.set_option('display.max_colwidth', None)
+
 
 # Uncomment the following lines if you need to download NLTK data files
 #import ssl
@@ -16,8 +21,7 @@ from nltk.stem import WordNetLemmatizer
 # nltk.download('punkt_tab', download_dir='/Users/michaelhammond/Documents/GitHub/tweetsent_env/nltk_data')
 # nltk.download('wordnet', download_dir='/Users/michaelhammond/Documents/GitHub/tweetsent_env/nltk_data')
 # nltk.download('omw-1.4', download_dir='/Users/michaelhammond/Documents/GitHub/tweetsent_env/nltk_data')
-nltk.download('averaged_perceptron_tagger', quiet=True, download_dir='/Users/michaelhammond/Documents/GitHub/tweetsent_env/nltk_data')
-
+#nltk.download('averaged_perceptron_tagger_eng')
 
 class RedditTransformer:
     """
@@ -49,7 +53,6 @@ class RedditTransformer:
             .str.lower()  # Convert to lowercase
             .str.strip()  # Remove leading/trailing whitespace
             .str.replace(r'\s+', ' ', regex=True)  # Normalize whitespace
-            .str.replace(r'\b\w{1,2}\b', '', regex=True)  # Remove short words
         )
 
         return df
@@ -84,10 +87,28 @@ class RedditTransformer:
         stopwords_combined = default_stopwords - set(keepwords) 
 
         df['tokens'] = df['cleaned_title'].apply(
-            lambda x: [word for word in word_tokenize(x) if word not in stopwords.words('english') and word not in keepwords]                                                   
+            lambda x: [word for word in word_tokenize(x) if word not in stopwords_combined]                                                   
         )
 
         return df
+
+    def get_wordnet_pos(self,treebank_tag):
+        """
+        Convert Treebank POS tags to WordNet POS tags.
+        :param treebank_tag: POS tag in Treebank format.
+        :return: POS tag in WordNet format.
+        """
+        if treebank_tag.startswith('J'):
+            return wordnet.ADJ
+        elif treebank_tag.startswith('V'):
+            return wordnet.VERB
+        elif treebank_tag.startswith('N'):
+            return wordnet.NOUN
+        elif treebank_tag.startswith('R'):
+            return wordnet.ADV
+        else:
+            return wordnet.NOUN
+        
 
     def lemmatization(self, df):
         """
@@ -96,16 +117,22 @@ class RedditTransformer:
         :param df: Pandas DataFrame containing tokenized text data.
         :return: DataFrame with lemmatized tokens.
         """
-        
-        self.logger.info("Lemmatizing tokens")
-    
+        self.logger.info("Starting Lemmatization")
         lemmatizer = WordNetLemmatizer()
-        
-        df['lemmatized_tokens'] = df['tokens'].apply(
-            lambda x: [lemmatizer.lemmatize(word) for word in x]
-        )
+        stop_words = set(stopwords.words('english'))
 
+        def lemmatize_row(tokens):
+            tagged = pos_tag(tokens)
+            return [
+                lemmatizer.lemmatize(word, pos=self.get_wordnet_pos(tag))
+                for word, tag in tagged
+            ]
+
+        df['lemmatized_tokens'] = df['tokens'].apply(lemmatize_row)
+        df.drop(columns=['tokens'], inplace=True)
         return df
+
+
     def transform_data(self, df, save_to_csv=True):
         """
         Transforms raw Reddit data into a structured DataFrame.
@@ -117,6 +144,7 @@ class RedditTransformer:
         df = self.text_cleanup(df)
         df = self.fix_typos(df)
         df = self.tokenization(df)
+        df = self.lemmatization(df)
         
         # Log the shape of the DataFrame after transformation
         self.logger.info(f"Transformed data shape: {df.shape}")
@@ -126,79 +154,9 @@ class RedditTransformer:
             filename=save_posts_to_csv(df, current_datetime=self.current_datetime, filename="transformed")
         
         return df
-    
 
-
-# Text Preprocessing for Sentiment Analysis:
-
-# Consider lemmatization/stemming
-# Deal with Reddit-specific elements (subreddit mentions, user tags, markdown)
-
-# Sentiment Analysis Implementation:
-
-# Choose your approach: rule-based (VADER), pre-trained models (TextBlob, spaCy), or transformer models (BERT, RoBERTa)
-# Consider Reddit-specific sentiment models if available
-# Generate sentiment scores (positive, negative, neutral, compound)
-# Add confidence scores if your model supports them
-
-# Feature Engineering:
-
-# Extract metadata features (post length, comment count, upvote ratio)
-# Time-based features (hour of day, day of week, seasonality)
-# Subreddit categorization
-# User engagement metrics
-
-# Load Phase
-# Database Design:
-
-# Decide on storage: relational DB (PostgreSQL), NoSQL (MongoDB), or data warehouse (BigQuery, Snowflake)
-# Design schema with proper indexing for your analysis queries
-# Consider partitioning by date or subreddit for performance
-
-# Data Pipeline Architecture:
-
-# Batch processing (Apache Airflow, Prefect) vs streaming (Apache Kafka, AWS Kinesis)
-# Error handling and data validation
-# Monitoring and alerting for pipeline failures
-
-# What's your current data volume and how frequently do you plan to update the analysis? This will help determine the best architecture approach.
-
-
-
-""" SUBREDDIT TONE
-
-✅ Step 2: Cluster Subreddits Based on Textual Content
-Use NLP vectorization to auto-group similar subreddits:
-
-
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.cluster import KMeans
-
-# Collect all titles per subreddit
-subreddit_texts = df.groupby('subreddit')['title'].apply(lambda x: ' '.join(x)).reset_index()
-
-# Vectorize
-vectorizer = TfidfVectorizer(max_features=1000)
-X = vectorizer.fit_transform(subreddit_texts['title'])
-
-# Cluster
-kmeans = KMeans(n_clusters=5, random_state=42)
-subreddit_texts['cluster'] = kmeans.fit_predict(X)
-Label clusters manually once, then use that to generalize sentiment adjustment per group.
-
-Example clusters:
-
-Cluster 0: mocking/ironic
-
-Cluster 1: political outrage
-
-Cluster 2: sincere/uplifting
-
-Cluster 3: humor/satire
-
-Cluster 4: technical/helpful
-
-
-
-
-"""
+    def apply_sentiment(self, df):
+        sentiments = df['cleaned_title'].apply(analyze_sentiment)
+        df['sentiment'] = sentiments.apply(lambda x: x[0])
+        df['confidence'] = sentiments.apply(lambda x: x[1])
+        return df

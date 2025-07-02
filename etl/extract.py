@@ -54,7 +54,7 @@ class RedditExtractor:
         subreddits = []
         try:
             for subreddit in self.reddit.subreddits.popular(limit=limit):
-                if not subreddit.over_18:
+                if not subreddit.over18:
                     subreddits.append(subreddit)
             self.logger.info(f"Successfully fetched {len(subreddits)} popular subreddits")
         except Exception as e:
