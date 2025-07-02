@@ -1,22 +1,27 @@
-import os
+
 from etl.extract import RedditExtractor
 from config.config import load_reddit_config
-# from transform import RedditTransformer  # Your future transform class
+from etl.transform import RedditTransformer
+import os
 # from load import RedditLoader  # Your future load class
 import structlog
+os.system('clear')
+
 
 def main():
     """
     Main ETL pipeline orchestrator for Reddit sentiment analysis.
     """
-
-
     logger = structlog.get_logger()
-    logger.info("Starting Reddit Sentinment ETL pipeline")
-    
+    logger = logger.bind(module="main")
+    subbredit_source = "popular"
+    logger.info(f"*** {subbredit_source.upper()} Reddit Sentinment ETL pipeline ***")
+    print('\n')
+
+
     try:
         # Extract Phase
-        logger.info("Starting extraction phase")
+        logger.info("EXTRACTION PHASE")
         config = load_reddit_config()
 
         extractor = RedditExtractor(
@@ -26,23 +31,32 @@ def main():
             username=config.username,
             password=config.password)
         
-        # Extract data from popular subreddits
+            # Extract data from popular subreddits
         raw_data = extractor.extract_reddit_data(
-            subreddit_source="popular",
-            subreddit_limit=100,
+            subreddit_source=subbredit_source,
+            subreddit_limit=2,
             posts_per_subreddit=20,
-            save_to_csv=True  # Save raw data for backup
+            save_to_csv=False  # Save raw data for backup
         )
-        
         logger.info(f"Extraction completed. Extracted {len(raw_data)} posts")
+        print('\n')
         
         # Transform Phase (placeholder for your future implementation)
-        logger.info("Starting transformation phase")
-        # transformer = RedditTransformer()
-        # processed_data = transformer.transform_data(raw_data)
+        logger.info("TRANSFORMATION PHASE")
+        transformer = RedditTransformer()
+        processed_data = transformer.transform_data(
+            raw_data, 
+            save_to_csv=True
+        )
         
+
+
+
+
+
+
         # Load Phase (placeholder for your future implementation)
-        logger.info("Starting load phase")
+        logger.info("LOADING PHASE")
         # loader = RedditLoader()
         # loader.load_data(processed_data)
         

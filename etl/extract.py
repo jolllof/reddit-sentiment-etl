@@ -4,7 +4,7 @@ import os
 from datetime import datetime, timedelta
 import praw
 import pandas as pd
-from utilities import *
+from utilities import save_posts_to_csv
 
 import structlog
 
@@ -121,24 +121,6 @@ class RedditExtractor:
         self.logger.info(f"Successfully extracted {len(posts_df)} posts")
         return posts_df
     
-    def save_posts_to_csv(self, posts_df, filename=None):
-        """
-        Save posts DataFrame to CSV file.
-        
-        Args:
-            posts_df (pandas.DataFrame): DataFrame containing post data
-            filename (str): Optional custom filename
-            
-        Returns:
-            str: Path to saved file
-        """
-        if filename is None:
-            filename = f"data/hot_posts_{self.current_datetime.strftime('%Y%m%d_%H%M%S')}.csv"
-        
-        posts_df.to_csv(filename, index=False)
-        self.logger.info(f"Saved {len(posts_df)} posts to {filename}")
-        return filename
-    
     def extract_reddit_data(self, subreddit_source="popular", subreddit_limit=10, posts_per_subreddit=10, save_to_csv=True):
         """
         Main extraction method that orchestrates the entire extraction process.
@@ -168,7 +150,7 @@ class RedditExtractor:
         
         # Save to CSV if requested
         if save_to_csv:
-            self.save_posts_to_csv(posts_df)
+            filename=save_posts_to_csv(posts_df, current_datetime=self.current_datetime, filename="extracted")
         
         self.logger.info("Reddit data extraction completed successfully")
         return posts_df
@@ -193,82 +175,4 @@ if __name__ == "__main__":
         subreddit_limit=args.subreddit_limit,
         posts_per_subreddit=args.posts_per_subreddit
     )
-
-
-
-
-
-# import argparse
-# import os
-# from datetime import datetime, timedelta
-# import praw
-# import pandas as pd
-# from utilities import *
-
-# import structlog
-# logger = structlog.get_logger()
-# logger=logger.bind(module="extract")
-# current_datetime = datetime.now()
-
-
-# reddit = praw.Reddit(
-#     client_id="SLxpSSHPC6W8_G7E_jnwHQ",
-#     client_secret="YkCYpwFnMJINtKH3w3ltytFkuRwKnQ",
-#     user_agent="sentiment_analysis",
-#     username="jolllof  ",
-#     password="Jarvis2.0"
-# )
-
-
-# def get_popular_subreddits(reddit_instance, limit=None):
-#     """
-#     Fetches the top subreddits from Reddit.
-#     :param reddit_instance: An instance of the Reddit API client.
-#     :param limit: The number of subreddits to fetch.
-#     :return: A list of subreddit names.
-#     """
-#     subreddits = []
-#     for subreddit in reddit_instance.subreddits.popular(limit=limit):
-#         subreddits.append(subreddit)
-#     return subreddits
-
-# def get_user_subreddits(reddit_instance, limit=None):
-#     """
-#     Fetches the subreddits that the authenticated user is subscribed to.
-#     :param reddit_instance: An instance of the Reddit API client.
-#     :param limit: The number of subreddits to fetch.
-#     :return: A list of subreddit names.
-#     """
-#     subreddits = []
-#     for subreddit in reddit_instance.user.subreddits(limit=limit):
-#         subreddits.append(subreddit.display_name)
-#     return subreddits
-
-# def get_hot_posts_from_subreddits(subreddits, reddit, limit=20):
-
-#     """
-#     Fetches the top posts from multiple subreddits.
-#     :param subreddit_names: A list of subreddit names.
-#     :param reddit_instance: An instance of the Reddit API client.
-#     :param limit: The number of posts to fetch from each subreddit.
-#     :return: A dictionary with subreddit names as keys and lists of post titles and scores as values.
-#     """
-#     posts=[]
-#     for sub in subreddits:
-#         logger.info(f"Fetching hot posts from: {sub}")
-
-#         subreddit = reddit.subreddit(sub)
-#         for post in subreddit.hot(limit=10):
-#             posts.append(
-#                 {
-#                     "subreddit": sub,
-#                     "title": post.title,
-#                     "score": post.score,
-#                     "url": post.url,
-#                     "author": post.author.name if post.author else "deleted",
-#                     "created_utc": datetime.utcfromtimestamp(post.created_utc),
-#                 }
-#             )
-
-#     posts_df = pd.DataFrame(posts)
-#     posts_df.to_csv(f"data/hot_posts_{current_datetime}.csv", index=False)
+    
