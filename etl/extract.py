@@ -1,7 +1,7 @@
 import argparse
 import os
 from datetime import datetime, timedelta
-from requests_oauthlib import OAuth1
+import praw
 
 from utilities import *
 os.system('clear')
@@ -9,44 +9,81 @@ os.system('clear')
 import structlog
 logger = structlog.get_logger()
 
-consumer_key='a2A6kLFlbDNJMiuI3Sl1BDxLE'
-consumer_secret='bWP0qEmf7xSygdVrMXVKHadrHcTpCRgTVabn9RUzXwCfxPObfK'
-bearer_token = 'AAAAAAAAAAAAAAAAAAAAAMat2gEAAAAAbSXpy%2FQ8lFwAwlYH6%2BDXgA9R5dc%3DvhRoAfdvyUhhbETcVPaDhvMk3NsqrP9EBjHukbjZYUYbHfwThY'
-access_token='1936517666514104320-vBYJwuRZFLDKumokPNARX3wPv5te3s'
-access_token_secret='3I6YzB5eQPocJPX48BloZBtB0ia8yseOlkKTSMti1xkG3'
+
+reddit = praw.Reddit(
+    client_id="SLxpSSHPC6W8_G7E_jnwHQ",
+    client_secret="YkCYpwFnMJINtKH3w3ltytFkuRwKnQ",
+    user_agent="sentiment_analysis",
+    username="jolllof  ",
+    password="Jarvis2.0"
+)
+
+
+def get_popular_subreddits(reddit_instance, limit=None):
+    """
+    Fetches the top subreddits from Reddit.
+    :param reddit_instance: An instance of the Reddit API client.
+    :param limit: The number of subreddits to fetch.
+    :return: A list of subreddit names.
+    """
+    subreddits = []
+    for subreddit in reddit_instance.subreddits.popular(limit=limit):
+        subreddits.append(subreddit)
+    return subreddits
+
+def get_user_subreddits(reddit_instance, limit=None):
+    """
+    Fetches the subreddits that the authenticated user is subscribed to.
+    :param reddit_instance: An instance of the Reddit API client.
+    :param limit: The number of subreddits to fetch.
+    :return: A list of subreddit names.
+    """
+    subreddits = []
+    for subreddit in reddit_instance.user.subreddits(limit=limit):
+        subreddits.append(subreddit.display_name)
+    return subreddits
+
+def get_hot_posts_from_subreddits(subreddits, reddit, limit=20):
+
+    """
+    Fetches the top posts from multiple subreddits.
+    :param subreddit_names: A list of subreddit names.
+    :param reddit_instance: An instance of the Reddit API client.
+    :param limit: The number of posts to fetch from each subreddit.
+    :return: A dictionary with subreddit names as keys and lists of post titles and scores as values.
+    """
+    for sub in subreddits:
+        logger.info(f"Fetching hot posts from subreddit: {sub}")
+
+        subreddit = reddit.subreddit(sub)
+        for post in subreddit.hot(limit=10):
+            print(f"{post.title} (Score: {post.score})")
 
 def main(args):
-    logger.info("Initiating Data Extract")
-    base_url = 'https://api.twitter.com/2'
-    users = '/users/me'
-    following = '/users/:id/following'
-    
-    auth = OAuth1(consumer_key, consumer_secret, access_token, access_token_secret)
+    logger.info("Getting popular subreddits from Reddit")
+    popular_subreddits = get_popular_subreddits(reddit)
+
+    #user_subreddits = get_user_subreddits(reddit)
+    nsfw = []
+    clean = []
+    logger.info("Removing NSFW subreddits")
+    for subreddit in popular_subreddits:
+        if subreddit.over18: 
+            nsfw.append(subreddit.display_name)
+        else:
+            clean.append(subreddit.display_name)
+
+    logger.info(f"Found {len(popular_subreddits)} popular subreddits, {len(nsfw)} NSFW and {len(clean)} clean subreddits")
+    logger.info("Getting top posts from clean subreddits") 
+    get_hot_posts_from_subreddits(clean, reddit)
+
 
     
-    # Get user data
-    logger.info("Fetching user data")
-    url = f"{base_url}{users}"
-    logger.info(f"URL: {url}")
-    res = get_data(url, auth)
-    user_id = res.json().get('data', {}).get('id', None)
-    name= res.json().get('data', {}).get('name', None)
-    username= res.json().get('data', {}).get('username', None)
-
-    # Get following data
-
-    # logger.info("Fetching following data")
-    # url = f"{base_url}{following.replace(':id', user_id)}"
-    # params = {
-    #     "max_results": 1000,
-    #     "user.fields": "id,name,username,verified",
-    # }
-    # logger.info(f"URL: {url}")
-
-    # res = get_data(url, auth)
-    # logger.info(f"Response: {res}")
-
     
+    # subreddit = reddit.subreddit("python")
+    # for post in subreddit.hot(limit=10):
+    #     print(f"{post.title} (Score: {post.score})")
+
     
 
 if __name__ == "__main__":

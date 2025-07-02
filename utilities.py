@@ -9,6 +9,7 @@ def get_data(url, auth):
 
     if response.status_code != 200:
         print(f"Error Fetching {url} \n {response}")
+        print(response.text)
         return []
     else:
         return response
@@ -22,5 +23,5 @@ def post_data(url, auth, params):
         print(f"Error Fetching {url} \n {response}")
         return []
     else:
-        return response
+        return response.text
         logger.info(f"Utilities: Successfully fetched data from {url}")
