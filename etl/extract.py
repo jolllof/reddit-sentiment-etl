@@ -50,7 +50,7 @@ class RedditExtractor:
         Returns:
             list: A list of subreddit objects.
         """
-        self.logger.info(f"Fetching popular subreddits with limit: {limit}")
+        self.logger.info(f"Fetching top {limit} popular subreddits")
         subreddits = []
         try:
             for subreddit in self.reddit.subreddits.popular(limit=limit):

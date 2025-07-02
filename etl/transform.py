@@ -1,17 +1,25 @@
 import structlog
 import pandas as pd
 from utilities import save_posts_to_csv
+from config.config import load_yaml_config
 from datetime import datetime
 import nltk
-import ssl
+from nltk.tokenize import word_tokenize
+from nltk.corpus import stopwords
+from textblob import TextBlob
 
+
+
+
+# Uncomment the following lines if you need to download NLTK data files
+#import ssl
 # ssl._create_default_https_context = ssl._create_unverified_context
 # nltk.download('punkt', quiet=True, download_dir='/Users/michaelhammond/Documents/GitHub/tweetsent_env/nltk_data')
 # nltk.download('punkt_tab', download_dir='/Users/michaelhammond/Documents/GitHub/tweetsent_env/nltk_data')
 # nltk.download('wordnet', download_dir='/Users/michaelhammond/Documents/GitHub/tweetsent_env/nltk_data')
 # nltk.download('omw-1.4', download_dir='/Users/michaelhammond/Documents/GitHub/tweetsent_env/nltk_data')
 
-from nltk.tokenize import word_tokenize
+
 
 class RedditTransformer:
     """
@@ -23,15 +31,16 @@ class RedditTransformer:
         self.logger = self.logger.bind(module="transform")
         self.current_datetime = datetime.now()
 
-    def transform_data(self, df, save_to_csv=True):
-        """
-        Transforms raw Reddit data into a structured DataFrame.
-        
-        :param raw_data: List of dictionaries containing raw Reddit post data.
-        :return: Pandas DataFrame with transformed data.
-        """
-        self.logger.info("Starting data transformation")
 
+    def text_cleanup(self, df):
+        """
+        Perform basic text cleaning on the DataFrame.
+        :param df: Pandas DataFrame containing Reddit post data.
+        :return: DataFrame with cleaned text data.
+        """
+        
+        self.logger.info("Starting Basic Text Cleaning")
+     
         # Perform necessary transformations
         df['created_utc'] = pd.to_datetime(df['created_utc'], unit='s')
         df.drop(columns=['url'], inplace=True, errors='ignore')
@@ -41,13 +50,59 @@ class RedditTransformer:
         df['title'] = df['title'].str.replace(r'[^\w\s]', '', regex=True)  # Remove special characters
         df['title'] = df['title'].str.lower()  # Convert to lowercase
         df['title'] = df['title'].str.strip()  # Remove leading/trailing whitespace
-        # df['title'] = df['title'].apply(lambda x: ' '.join(word_tokenize(x)))  # Tokenization
         df['title'] = df['title'].str.replace(r'\s+', ' ', regex=True)  # Normalize whitespace
         df['title'] = df['title'].str.replace(r'\b\w{1,2}\b', '', regex=True)  # Remove short words
 
+        return df
 
-        df['tokens'] = df['title'].apply(lambda x: word_tokenize(x))  # Tokenization
+    def fix_typos(self, df):
+        """
+        Fix common typos in the DataFrame.
+        
+        :param  
+        df: Pandas DataFrame containing text data.
+        :return: DataFrame with fixed typos.
+        """ 
+        df['title'] = df['title'].apply(lambda x: str(TextBlob(x).correct()))
+        self.logger.info("Fixed typos in text data")
+        return df
 
+    def tokenization(self, df):
+        """
+        Tokenizes the text data in the DataFrame.
+        
+        :param
+        df: Pandas DataFrame containing text data.
+        :return: DataFrame with tokenized text.
+        """
+    
+        self.logger.info("Tokenizing and removing stop words")
+        
+        self.logger.info(f"Loading keepwords from config")
+        keepwords = load_yaml_config('keep_words')
+
+        default_stopwords = set(stopwords.words('english'))
+        stopwords_combined = default_stopwords - set(keepwords) 
+
+        df['tokens'] = df['title'].apply(
+            lambda x: [word for word in word_tokenize(x) if word not in stopwords.words('english') and word not in keepwords]                                                   
+        )
+
+        return df
+
+    def transform_data(self, df, save_to_csv=True):
+        """
+        Transforms raw Reddit data into a structured DataFrame.
+        
+        :param raw_data: List of dictionaries containing raw Reddit post data.
+        :return: Pandas DataFrame with transformed data.
+        """
+        
+        df = self.text_cleanup(df)
+        df = self.fix_typos(df)
+        df = self.tokenization(df)
+        
+        
         # Log the shape of the DataFrame after transformation
         self.logger.info(f"Transformed data shape: {df.shape}")
 
@@ -55,7 +110,6 @@ class RedditTransformer:
         if save_to_csv:
             filename=save_posts_to_csv(df, current_datetime=self.current_datetime, filename="transformed")
         
-
         return df
     
 
