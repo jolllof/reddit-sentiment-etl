@@ -25,7 +25,7 @@ The pipeline will be orchestrated using **Apache Airflow** and should scale usin
   Cleans post content (removes URLs, emojis, markdown formatting, etc.) and filters for language and relevance. **NLTK** for tokenization and stopwords, ***TextBlob** to fix typos
 
 - **🧠 Sentiment Enrichment**  
-  Classifies each post as *Positive*, *Negative*, or *Neutral* using **RoBERTA Sentiment Analysis**, with optional support for transformer models like **BERT**.
+  Classifies each post as *Positive*, *Negative*, or *Neutral* using the RoBERTA based transformer **cardiffnlp/twitter-roberta-base-sentiment** and emotion classification using  **j-hartmann/emotion-english-distilroberta-base**.
 
 - **📦 Data Loading**  
   Saves processed data to **AWS S3** or local storage. Optionally supports loading into **PostgreSQL** or **BigQuery** for querying.
@@ -41,7 +41,8 @@ The pipeline will be orchestrated using **Apache Airflow** and should scale usin
 - PRAW (Python Reddit API Wrapper)
 - NLTK
 - Pandas
-- RoBERTA (cardiffnlp/twitter-roberta-base-sentiment)
+- Sentiment Transformer (cardiffnlp/twitter-roberta-base-sentiment)
+- Emotion Transformer (j-hartmann/emotion-english-distilroberta-base)
 - Apache Airflow
 - PySpark (optional for scale)
 - AWS S3 / PostgreSQL / BigQuery (optional for storage)
