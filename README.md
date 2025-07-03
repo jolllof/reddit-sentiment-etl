@@ -25,7 +25,7 @@ The pipeline will be orchestrated using **Apache Airflow** and should scale usin
   Cleans post content (removes URLs, emojis, markdown formatting, etc.) and filters for language and relevance. **NLTK** for tokenization and stopwords, ***TextBlob** to fix typos
 
 - **🧠 Sentiment Enrichment**  
-  Classifies each post as *Positive*, *Negative*, or *Neutral* using **VADER Sentiment Analysis**, with optional support for transformer models like **BERT**.
+  Classifies each post as *Positive*, *Negative*, or *Neutral* using **RoBERTA Sentiment Analysis**, with optional support for transformer models like **BERT**.
 
 - **📦 Data Loading**  
   Saves processed data to **AWS S3** or local storage. Optionally supports loading into **PostgreSQL** or **BigQuery** for querying.
@@ -39,17 +39,12 @@ The pipeline will be orchestrated using **Apache Airflow** and should scale usin
 
 - Python 3
 - PRAW (Python Reddit API Wrapper)
-- VADER (NLTK Sentiment Analyzer)
+- NLTK
+- Pandas
+- RoBERTA (cardiffnlp/twitter-roberta-base-sentiment)
 - Apache Airflow
 - PySpark (optional for scale)
 - AWS S3 / PostgreSQL / BigQuery (optional for storage)
-
----
-
-## 📌 Notes
-
-- Reddit’s "hot" posts reflect trending content, which may introduce engagement or popularity bias.
-- VADER is tuned for social media, but transformer models may improve accuracy for more nuanced sentiment.
 
 ---
 
