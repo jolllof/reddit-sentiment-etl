@@ -9,11 +9,9 @@ from nltk.corpus import stopwords, wordnet
 from textblob import TextBlob
 from nltk.stem import WordNetLemmatizer
 from nltk import pos_tag
-from models.sentiment import analyze_sentiment
-
-pd.set_option('display.max_colwidth', None)
 
 
+# Ensure necessary NLTK resources are downloaded
 # Uncomment the following lines if you need to download NLTK data files
 #import ssl
 # ssl._create_default_https_context = ssl._create_unverified_context
@@ -143,31 +141,9 @@ class RedditTransformer:
         df = self.fix_typos(df)
         df = self.tokenization(df)
         df = self.lemmatization(df)
-        
-        # Log the shape of the DataFrame after transformation
-        self.logger.info(f"Transformed data shape: {df.shape}")
 
          # Save to CSV if requested
         if save_to_csv:
             filename=save_posts_to_csv(df, current_datetime=self.current_datetime, filename="transformed")
-        
-        return df
-
-    def apply_sentiment(self, df):
-        """
-        Applies sentiment analysis to the cleaned titles in the DataFrame.
-        :param df: Pandas DataFrame containing cleaned titles.
-        :return: DataFrame with sentiment labels and confidence scores.
-        """
-        label_map = {
-            "LABEL_0": "Negative",
-            "LABEL_1": "Neutral",
-            "LABEL_2": "Positive"
-        }
-        
-        sentiments = df['cleaned_title'].apply(analyze_sentiment)
-        
-        df['sentiment'] = sentiments.apply(lambda x: label_map.get(x[0], x[0]))  # Map label or fallback to original
-        df['confidence'] = sentiments.apply(lambda x: x[1])
         
         return df
