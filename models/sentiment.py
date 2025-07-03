@@ -4,6 +4,7 @@ import structlog
 import pandas as pd
 from utilities import save_posts_to_csv
 from datetime import datetime
+from tqdm import tqdm
 
 
 class SentimentAnalyzer:
@@ -19,6 +20,11 @@ class SentimentAnalyzer:
         self.emotion_model = pipeline("text-classification", model="j-hartmann/emotion-english-distilroberta-base")
 
     def analyze_sentiment(self, text):
+        """
+        Analyze sentiment of the given text using a pre-trained model.
+        :param text: Input text to analyze.
+        :return: Tuple of sentiment label and confidence score.
+        """
         try:
             result = self.sentiment_model(text[:512])  # Limit input length for safety
             return result[0]['label'], float(result[0]['score'])
@@ -27,6 +33,11 @@ class SentimentAnalyzer:
             return "ERROR", 0.0
 
     def analyze_emotion(self, text):
+        """
+        Analyze emotion of the given text using a pre-trained model.
+        :param text: Input text to analyze.
+        :return: Tuple of sentiment label and confidence score.
+        """
         try:
             result = self.emotion_model(text[:512])
             return result[0]['label'], float(result[0]['score'])
@@ -73,16 +84,19 @@ class SentimentAnalyzer:
             "LABEL_2": "Positive"
         }
         
-        self.logger.info("Applying sentiment analysis to cleaned titles")
-        sentiments = df['cleaned_title'].apply(self.analyze_sentiment)
-        
-        df['sentiment'] = sentiments.apply(lambda x: label_map.get(x[0], x[0]))  # Map label or fallback to original
-        df['sentiment_confidence'] = sentiments.apply(lambda x: x[1])
+        tqdm.pandas(desc="Analyzing sentiment")
+        sentiments = df['cleaned_title'].progress_apply(self.analyze_sentiment)
+        tqdm.pandas(desc="Applying sentiment")
+        df['sentiment'] = sentiments.progress_apply(lambda x: label_map.get(x[0], x[0]))  # Map label or fallback to original
+        tqdm.pandas(desc="Applying sentiment score")
+        df['sentiment_confidence'] = sentiments.progress_apply(lambda x: x[1])
 
-        self.logger.info("Applying emotion analysis to cleaned titles")
-        emotions = df['cleaned_title'].apply(self.analyze_emotion) 
-        df['emotion'] = emotions.apply(lambda x: x[0])
-        df['emotion_confidence'] = emotions.apply(lambda x: x[1])
+        tqdm.pandas(desc="Analyzing emotion")
+        emotions = df['cleaned_title'].progress_apply(self.analyze_emotion) 
+        tqdm.pandas(desc="Applying emotion")
+        df['emotion'] = emotions.progress_apply(lambda x: x[0])
+        tqdm.pandas(desc="Applying emotion score")
+        df['emotion_confidence'] = emotions.progress_apply(lambda x: x[1])
 
         if save_to_csv:
             save_posts_to_csv(df, current_datetime=self.current_datetime, filename="sentiment_analysis")

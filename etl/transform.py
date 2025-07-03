@@ -9,6 +9,8 @@ from nltk.corpus import stopwords, wordnet
 from textblob import TextBlob
 from nltk.stem import WordNetLemmatizer
 from nltk import pos_tag
+from tqdm import tqdm
+import re
 
 
 # Ensure necessary NLTK resources are downloaded
@@ -38,20 +40,20 @@ class RedditTransformer:
         :return: DataFrame with cleaned text data.
         """
         
-        self.logger.info("Starting Basic Text Cleaning")
-     
+        self.logger.info("Starting Data Cleaning")
+        
         # Perform necessary transformations
         df['created_utc'] = pd.to_datetime(df['created_utc'], unit='s')
 
-        # # Clean text data
-        df['cleaned_title'] = (
-            df['title']
-            .str.replace(r'http\S+|www\S+|https\S+', '', regex=True)  # Remove URLs
-            .str.replace(r'[^\w\s]', '', regex=True)  # Remove special characters
-            .str.lower()  # Convert to lowercase
-            .str.strip()  # Remove leading/trailing whitespace
-            .str.replace(r'\s+', ' ', regex=True)  # Normalize whitespace
-        )
+        # Clean each title with a progress bar
+        tqdm.pandas(desc="Cleaning text data")
+        df['cleaned_title'] = df['title'].progress_apply(lambda x: re.sub(
+            r'\s+', ' ',
+            re.sub(r'[^\w\s]', '',
+            re.sub(r'http\S+|www\S+|https\S+', '', x.lower().strip()))
+        ))
+
+
 
         return df
 
@@ -63,8 +65,8 @@ class RedditTransformer:
         df: Pandas DataFrame containing text data.
         :return: DataFrame with fixed typos.
         """ 
-        df['cleaned_title'] = df['cleaned_title'].apply(lambda x: str(TextBlob(x).correct()))
-        self.logger.info("Fixed typos in text data")
+        tqdm.pandas(desc="Fixing Typos")
+        df['cleaned_title'] = df['cleaned_title'].progress_apply(lambda x: str(TextBlob(x).correct()))
         return df
 
     def tokenization(self, df):
@@ -75,16 +77,14 @@ class RedditTransformer:
         df: Pandas DataFrame containing text data.
         :return: DataFrame with tokenized text.
         """
-    
-        self.logger.info("Tokenizing and removing stop words")
         
-        self.logger.info(f"Loading keepwords from config")
         keepwords = load_yaml_config('keep_words')
 
         default_stopwords = set(stopwords.words('english'))
         stopwords_combined = default_stopwords - set(keepwords) 
 
-        df['tokens'] = df['cleaned_title'].apply(
+        tqdm.pandas(desc="Tokenizing text data")
+        df['tokens'] = df['cleaned_title'].progress_apply(
             lambda x: [word for word in word_tokenize(x) if word not in stopwords_combined]                                                   
         )
 
@@ -96,6 +96,7 @@ class RedditTransformer:
         :param treebank_tag: POS tag in Treebank format.
         :return: POS tag in WordNet format.
         """
+        
         if treebank_tag.startswith('J'):
             return wordnet.ADJ
         elif treebank_tag.startswith('V'):
@@ -114,7 +115,6 @@ class RedditTransformer:
         :param df: Pandas DataFrame containing tokenized text data.
         :return: DataFrame with lemmatized tokens.
         """
-        self.logger.info("Starting Lemmatization")
         lemmatizer = WordNetLemmatizer()
         stop_words = set(stopwords.words('english'))
 
@@ -124,8 +124,8 @@ class RedditTransformer:
                 lemmatizer.lemmatize(word, pos=self.get_wordnet_pos(tag))
                 for word, tag in tagged
             ]
-
-        df['lemmatized_tokens'] = df['tokens'].apply(lemmatize_row)
+        tqdm.pandas(desc="Lemmatizing tokens")
+        df['lemmatized_tokens'] = df['tokens'].progress_apply(lemmatize_row)
         df.drop(columns=['tokens'], inplace=True)
         return df
 
