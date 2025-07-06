@@ -1,11 +1,11 @@
 
 from etl.extract import RedditExtractor
-from config.config import load_reddit_config
+from config.config import load_reddit_config, load_db_config
 from etl.transform import RedditTransformer
 from models.sentiment import SentimentAnalyzer
 from utilities import save_posts_to_csv
 import os
-# from load import RedditLoader  # Your future load class
+from etl.load import RedditLoader
 import structlog
 os.system('clear')
 
@@ -61,12 +61,11 @@ def main():
             transformed_data,
             save_to_csv=True
         )
-        logger.info("Sentiment analysis completed and saved to CSV")
-
+    
         # Load Phase (placeholder for your future implementation)
         logger.info("LOADING PHASE")
-        # loader = RedditLoader()
-        # loader.load_data(processed_data)
+        RedditLoader(db_config=config.db_config)
+        #loader.load_data(analyized_data)
         
         logger.info("ETL pipeline completed successfully!")
         
