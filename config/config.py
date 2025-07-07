@@ -1,5 +1,6 @@
 import os
 from dataclasses import dataclass
+from typing import List, Dict, Any
 import yaml
 
 @dataclass
@@ -37,7 +38,7 @@ def load_db_config() -> dict:
         'port': int(os.getenv('DB_PORT'))
     }
 
-def load_yaml_config(values: str) -> dict:
+def load_yaml_config(values: str) -> dict[str, Any]:
     """
     Load configuration from a YAML file.
     This function can be expanded to read from a specific YAML file if needed.
