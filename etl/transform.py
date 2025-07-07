@@ -33,7 +33,7 @@ class RedditTransformer:
         self.logger = self.logger.bind(module="transform")
         self.current_datetime = datetime.now()
 
-    def text_cleanup(self, df):
+    def text_cleanup(self, df) -> pd.DataFrame:
         """
         Perform basic text cleaning on the DataFrame.
         :param df: Pandas DataFrame containing Reddit post data.
@@ -53,11 +53,9 @@ class RedditTransformer:
             re.sub(r'http\S+|www\S+|https\S+', '', x.lower().strip()))
         ))
 
-
-
         return df
 
-    def fix_typos(self, df):
+    def fix_typos(self, df) -> pd.DataFrame:
         """
         Fix common typos in the DataFrame.
         
@@ -69,7 +67,7 @@ class RedditTransformer:
         df['cleaned_title'] = df['cleaned_title'].progress_apply(lambda x: str(TextBlob(x).correct()))
         return df
 
-    def tokenization(self, df):
+    def tokenization(self, df) -> pd.DataFrame:
         """
         Tokenizes the text data in the DataFrame.
         
@@ -108,7 +106,7 @@ class RedditTransformer:
         else:
             return wordnet.NOUN
         
-    def lemmatization(self, df):
+    def lemmatization(self, df) -> pd.DataFrame:
         """
         Lemmatizes the tokens in the DataFrame.
         
