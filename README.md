@@ -22,13 +22,13 @@ The pipeline will be orchestrated using **Apache Airflow** and should scale usin
   Collects hot posts from specified subreddits using the Reddit API via **PRAW**.
 
 - **🧹 Data Transformation**  
-  Cleans post content (removes URLs, emojis, markdown formatting, etc.) and filters for language and relevance. **NLTK** for tokenization and stopwords, ***TextBlob** to fix typos
+  Cleans post content (removes URLs, emojis, markdown formatting, etc.) and filters for language and relevance. **NLTK** for tokenization, stopwords, word lemmatizing and ***TextBlob** to fix typos
 
 - **🧠 Sentiment Enrichment**  
-  Classifies each post as *Positive*, *Negative*, or *Neutral* using the RoBERTA based transformer **cardiffnlp/twitter-roberta-base-sentiment** and emotion classification using  **j-hartmann/emotion-english-distilroberta-base**.
+  Classifies each post as *Positive*, *Negative*, or *Neutral* using the RoBERTA based transformer **cardiffnlp/twitter-roberta-base-sentiment** and emotion classification using  **j-hartmann/emotion-english-distilroberta-base**. Additionally **scikit-learn** is implemented for tone clustering.
 
 - **📦 Data Loading**  
-  Saves processed data to **AWS S3** or local storage. Optionally supports loading into **PostgreSQL** or **BigQuery** for querying.
+  Writes results to **AWS RDS** table and saves processed data to **AWS S3**.
 
 - **⏱ Orchestration**  
   Workflow is scheduled and managed using **Apache Airflow DAGs**, with customizable run intervals (e.g., hourly or daily).
