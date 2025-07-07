@@ -24,6 +24,19 @@ def load_reddit_config() -> RedditConfig:
         password=os.getenv('REDDIT_PASSWORD')
     )
 
+def load_db_config() -> dict:
+    """
+    Load database configuration from environment variables.
+    Falls back to default values if environment variables are not set.
+    """
+    return {
+        'host': os.getenv('DB_HOST'),
+        'database': os.getenv('DB_NAME'),
+        'user': os.getenv('DB_USER'),
+        'password': os.getenv('DB_PASSWORD'),
+        'port': int(os.getenv('DB_PORT'))
+    }
+
 def load_yaml_config(values: str) -> dict:
     """
     Load configuration from a YAML file.
