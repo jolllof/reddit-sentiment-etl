@@ -43,20 +43,20 @@ The pipeline will be orchestrated using **Apache Airflow** and should scale usin
 - Pandas
 - Sentiment Transformer (cardiffnlp/twitter-roberta-base-sentiment)
 - Emotion Transformer (j-hartmann/emotion-english-distilroberta-base)
+- Scikit-Learn
 - Apache Airflow
 - PySpark (optional for scale)
-- AWS S3 / PostgreSQL / BigQuery (optional for storage)
+- AWS S3 / RDS / PostgreSQL
+- TQDM progressbars
 
 ---
 
 ## ✅ Next Steps
 
-- Add topic modeling or keyword extraction
-- Incorporate comment sentiment for deeper insights
 - Deploy with Docker and set up on a cloud scheduler (e.g., AWS MWAA or Cloud Composer)
 
 ---
 
 ## 📬 Contact
 
-Feel free to reach out or open an issue for questions or collaboration ideas!
+Feel free to reach out or open an issue for questions or collaboration ideas at: **jollofcodes@gmail.com**
