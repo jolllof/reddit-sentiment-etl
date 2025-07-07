@@ -5,6 +5,8 @@ import pandas as pd
 from utilities import save_posts_to_csv
 from datetime import datetime
 from tqdm import tqdm
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
 
 
 class SentimentAnalyzer:
@@ -45,32 +47,29 @@ class SentimentAnalyzer:
             self.logger.error("Emotion analysis failed", error=str(e))
             return "ERROR", 0.0
 
-    # def subreddit_tone_clustering(self, df, n_clusters=5):
-    #     """
-    #     Perform clustering on subreddit tones based on sentiment and emotion scores.
+    def subreddit_tone_clustering(self, df, n_clusters=5):
+        """
+        Perform clustering on subreddit tones based on sentiment and emotion scores.
         
-    #     :param df: DataFrame containing sentiment and emotion columns.
-    #     :param n_clusters: Number of clusters to form.
-    #     :return: DataFrame with cluster labels added.
-    #     """
+        :param df: DataFrame containing sentiment and emotion columns.
+        :param n_clusters: Number of clusters to form.
+        :return: DataFrame with cluster labels added.
+        """
 
-    #     from sklearn.cluster import KMeans
-    #     from sklearn.preprocessing import StandardScaler
-
-    #     # Select relevant features for clustering
-    #     features = df[['sentiment_confidence', 'emotion_confidence']]
+        # Select relevant features for clustering
+        features = df[['sentiment_confidence', 'emotion_confidence']]
         
-    #     # Scale the features
-    #     scaler = StandardScaler()
-    #     scaled_features = scaler.fit_transform(features)
+        # Scale the features
+        scaler = StandardScaler()
+        scaled_features = scaler.fit_transform(features)
 
-    #     # Perform KMeans clustering
-    #     kmeans = KMeans(n_clusters=n_clusters, random_state=42)
-    #     df['tone_cluster'] = kmeans.fit_predict(scaled_features)
-
-    #     self.logger.info(f"Clustering completed with {n_clusters} clusters")
+        # Perform KMeans clustering
+        kmeans = KMeans(n_clusters=n_clusters, random_state=42)
+        df['tone_cluster'] = kmeans.fit_predict(scaled_features)
+    
+        self.logger.info(f"Clustering completed with {n_clusters} clusters")
         
-    #     return df
+        return df
 
     def apply_analysis(self, df, save_to_csv=False):
         """
@@ -98,18 +97,10 @@ class SentimentAnalyzer:
         tqdm.pandas(desc="Applying emotion score")
         df['emotion_confidence'] = emotions.progress_apply(lambda x: x[1])
 
+        self.logger.info("Applying tone clustering")
+        df = self.subreddit_tone_clustering(df)
+
         if save_to_csv:
             save_posts_to_csv(df, current_datetime=self.current_datetime, filename="sentiment_analysis")
         return df
     
-# Feature Engineering:
-
-# Subreddit categorization
-# User engagement metrics
-
-
-# Data Pipeline Architecture:
-
-# Batch processing (Apache Airflow, Prefect) vs streaming (Apache Kafka, AWS Kinesis)
-# Error handling and data validation
-# Monitoring and alerting for pipeline failures
