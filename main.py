@@ -14,6 +14,9 @@ def main():
     """
     Main ETL pipeline orchestrator for Reddit sentiment analysis.
     """
+
+    db_config=load_db_config()
+    x=input(f"Press Enter to continue with the ETL pipeline...{db_config}")
     logger = structlog.get_logger()
     logger = logger.bind(module="main")
     subbredit_source = "popular"

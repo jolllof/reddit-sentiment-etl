@@ -30,11 +30,11 @@ def load_db_config() -> dict:
     Falls back to default values if environment variables are not set.
     """
     return {
-        'host': os.getenv('DB_HOST', 'localhost'),
-        'database': os.getenv('DB_NAME', 'reddit_etl'),
-        'user': os.getenv('DB_USER', 'reddit_etl'),
-        'password': os.getenv('DB_PASSWORD', 'password'),
-        'port': int(os.getenv('DB_PORT', 5432))
+        'host': os.getenv('DB_HOST'),
+        'database': os.getenv('DB_NAME'),
+        'user': os.getenv('DB_USER'),
+        'password': os.getenv('DB_PASSWORD'),
+        'port': int(os.getenv('DB_PORT'))
     }
 
 def load_yaml_config(values: str) -> dict:
