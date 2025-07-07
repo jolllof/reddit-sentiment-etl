@@ -15,12 +15,11 @@ def main():
     Main ETL pipeline orchestrator for Reddit sentiment analysis.
     """
 
-    db_config=load_db_config()
-    x=input(f"Press Enter to continue with the ETL pipeline...{db_config}")
+
     logger = structlog.get_logger()
     logger = logger.bind(module="main")
     subbredit_source = "popular"
-    subreddit_limit=1
+    subreddit_limit=50
     posts_per_subreddit=20
 
     logger.info(f"*** {subbredit_source.upper()} Reddit Sentinment ETL pipeline ***")
@@ -60,15 +59,17 @@ def main():
         logger.info("SENTIMENT ANALYSIS PHASE")
         analyzer = SentimentAnalyzer()
 
-        analyized_data=analyzer.apply_analysis(
+        analyzed_data=analyzer.apply_analysis(
             transformed_data,
-            save_to_csv=True
+            save_to_csv=False
         )
     
         # Load Phase (placeholder for your future implementation)
+        db_config=load_db_config()
         logger.info("LOADING PHASE")
-        RedditLoader(db_config=config.db_config)
-        #loader.load_data(analyized_data)
+
+        loader=RedditLoader(db_config=db_config)
+        loader.load_data(analyzed_data, 'sentiment_data' )
         
         logger.info("ETL pipeline completed successfully!")
         
